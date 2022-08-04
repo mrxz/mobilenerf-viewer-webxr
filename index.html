@@ -1,0 +1,313 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>MobileNeRF + WebXR</title>
+</head>
+
+<style>
+    html, body {
+        background: #333333;
+        color: rgba(255, 255, 255, 0.8);
+    }
+    .previewImgWrapper {
+        position: relative;
+        padding-bottom: 100%;
+        height: 0;
+    }
+
+    .previewImgWrapper img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    a {
+        text-decoration: none;
+        color: rgb(255, 68, 0);
+    }
+
+    td a {
+        background:rgba(255, 255, 255, 0.8);
+        color: black;
+        box-sizing: border-box;
+        width: 40%;
+        padding: 5px 3px;
+        margin: 5px 5px;
+        font-size: 12px;
+        display: inline-block;
+    }
+
+</style>
+
+<body>
+    <div style="align:center; font-family:Arial; margin: auto; max-width: 960px;">
+
+        <div style="text-align:center; vertical-align: middle; font-size:48;">
+            <br><br>
+            MobileNeRF + <img style="vertical-align: text-top" src="assets/webxr-logo.png" height="48px" /> WebXR
+            <br><br>
+        </div>
+
+        <div style="text-align:justify; font-size:20; line-height:150%;">
+            This is <strong style="text-decoration: underline">NOT</strong> the official page for MobileNeRF. For that, please visit: <a href="https://mobile-nerf.github.io/">mobile-nerf.github.io</a>.
+            Instead this page allows you to view the the MobileNeRF live demo scenes in VR through WebXR. This is achieved by making some changes to the original viewer, but all credit for the amazing research, code for the original viewer and demo data goes to the original authors.
+        </div>
+
+        <br><br><br>
+
+        <div style="text-align:center; font-size:28; line-height:200%;">
+            <span style="color: rgb(255, 68, 0)">-- Instructions --</span>
+        </div>
+        <div style="text-align:justify; font-size:20; line-height:150%;">
+            Pick a rendering quality preset for any of the demo scenes. On the next page click 'Enter VR' to view the scene in VR.
+            <br>
+            <b>Note:</b> This is very demanding to run and won't run smoothly on a standalone Quest 2. Only the lowest '256px' quality works somewhat in that scenario.
+            Therefor it's highly recommended to run this on a PC with a VR headset attached.
+            <br><br>
+        </div>
+
+        <div style="text-align:center; font-size:28; line-height:200%;">
+            <span style="color: rgb(255, 68, 0)">-- Synthetic 360&#176; scenes --</span>
+        </div>
+
+        <div align="center">
+            <table style="text-align:center; width:100%">
+                <tr align="center" style="font-size:16;">
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_chair.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=chair&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=chair&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=chair&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=chair&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_drums.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=drums&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=drums&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=drums&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=drums&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_ficus.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=ficus&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=ficus&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=ficus&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=ficus&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_hotdog.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=hotdog&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=hotdog&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=hotdog&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=hotdog&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                </tr>
+                <tr align="center" style="font-size:16;">
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_lego.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=lego&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=lego&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=lego&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=lego&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_materials.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=materials&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=materials&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=materials&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=materials&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_mic.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=mic&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=mic&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=mic&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=mic&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_ship.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=ship&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=ship&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=ship&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=ship&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+
+
+        <div style="text-align:center; font-size:28; line-height:200%;">
+            <br>
+            <span style="color: rgb(255, 68, 0)">-- Forward-facing scenes --</span>
+        </div>
+
+        <div align="center">
+            <table style="text-align:center; width:100%">
+                <tr align="center" style="font-size:18;">
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_fern.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=fern&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=fern&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=fern&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=fern&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_flower.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=flower&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=flower&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=flower&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=flower&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_fortress.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=fortress&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=fortress&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=fortress&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=fortress&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_horns.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=horns&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=horns&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=horns&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=horns&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                </tr>
+                <tr align="center" style="font-size:18;">
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_leaves.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=leaves&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=leaves&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=leaves&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=leaves&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_orchids.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=orchids&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=orchids&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=orchids&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=orchids&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_room.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=room&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=room&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=room&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=room&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_trex.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=trex&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=trex&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=trex&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=trex&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+
+
+        <div style="text-align:center; font-size:28; line-height:200%;">
+            <br>
+            <span style="color: rgb(255, 68, 0)">-- Unbounded 360&#176; scenes --</span>
+        </div>
+
+        <div align="center">
+            <table style="text-align:center; width:100%">
+                <tr align="center" style="font-size:18;">
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_bicycle.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=bicycle&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=bicycle&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=bicycle&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=bicycle&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_gardenvase.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=gardenvase&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=gardenvase&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=gardenvase&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=gardenvase&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                        <br>
+                        <div class="previewImgWrapper">
+                            <img src="https://mobile-nerf.github.io/image/preview_stump.jpg" />
+                        </div>
+                        <a href="./viewer.html?obj=stump&w=256&h=256" style="text-decoration: none"><b>256px</b></a>
+                        <a href="./viewer.html?obj=stump&w=512&h=512" style="text-decoration: none"><b>512px</b></a>
+                        <a href="./viewer.html?obj=stump&w=1024&h=1024" style="text-decoration: none"><b>1024px</b></a>
+                        <a href="./viewer.html?obj=stump&w=2048&h=2048" style="text-decoration: none"><b>2048px</b></a>
+                    </td>
+                    <td align="center" style="width:25%">
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <br><br><br><br><br><br><br><br>
+
+    </div>
+</body>
+
+</html>
