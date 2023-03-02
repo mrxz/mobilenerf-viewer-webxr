@@ -104,73 +104,132 @@ const viewDependenceNetworkShaderFunctions = `
     uniform mediump sampler2D tDiffuse1x;
     uniform mediump sampler2D tDiffuse2x;
 
-    uniform mediump sampler2D weightsZero;
-    uniform mediump sampler2D weightsOne;
-    uniform mediump sampler2D weightsTwo;
-
     mediump vec3 evaluateNetwork( mediump vec4 f0, mediump vec4 f1, mediump vec4 viewdir) {
-        mediump float intermediate_one[NUM_CHANNELS_ONE] = float[](
+        mediump mat4 intermediate_one = mat4(
             BIAS_LIST_ZERO
         );
-        for (int j = 0; j < NUM_CHANNELS_ZERO; ++j) {
-            mediump float input_value = 0.0;
-            if (j < 4) {
-            input_value =
-                (j == 0) ? f0.r : (
-                (j == 1) ? f0.g : (
-                (j == 2) ? f0.b : f0.a));
-            } else if (j < 8) {
-            input_value =
-                (j == 4) ? f1.r : (
-                (j == 5) ? f1.g : (
-                (j == 6) ? f1.b : f1.a));
-            } else {
-            input_value =
-                (j == 8) ? viewdir.r : (
-                (j == 9) ? -viewdir.b : viewdir.g); //switch y-z axes
-            }
-            for (int i = 0; i < NUM_CHANNELS_ONE; ++i) {
-            intermediate_one[i] += input_value *
-                texelFetch(weightsZero, ivec2(j, i), 0).x;
-            }
-        }
-        mediump float intermediate_two[NUM_CHANNELS_TWO] = float[](
+        // FIXME: j9 can be different
+        vec4 j9 = vec4(viewdir.x, -viewdir.z, viewdir.y, 0.0);  //switch y-z axes
+        mat4 input_values = mat4(f0, f1, j9, vec4(0.0));
+
+        mat4 weightsArr[11] = mat4[](
+            mat4(__W0_0__),
+            mat4(__W0_1__),
+            mat4(__W0_2__),
+            mat4(__W0_3__),
+            mat4(__W0_4__),
+            mat4(__W0_5__),
+            mat4(__W0_6__),
+            mat4(__W0_7__),
+            mat4(__W0_8__),
+            mat4(__W0_9__),
+            mat4(__W0_10__)
+        );
+        mat4 weightsArr2[16] = mat4[](
+            mat4(__W1_0__),
+            mat4(__W1_1__),
+            mat4(__W1_2__),
+            mat4(__W1_3__),
+            mat4(__W1_4__),
+            mat4(__W1_5__),
+            mat4(__W1_6__),
+            mat4(__W1_7__),
+            mat4(__W1_8__),
+            mat4(__W1_9__),
+            mat4(__W1_10__),
+            mat4(__W1_11__),
+            mat4(__W1_12__),
+            mat4(__W1_13__),
+            mat4(__W1_14__),
+            mat4(__W1_15__)
+        );
+        vec3 weightsArr3[16] = vec3[](
+            vec3(__W2_0__),
+            vec3(__W2_1__),
+            vec3(__W2_2__),
+            vec3(__W2_3__),
+            vec3(__W2_4__),
+            vec3(__W2_5__),
+            vec3(__W2_6__),
+            vec3(__W2_7__),
+            vec3(__W2_8__),
+            vec3(__W2_9__),
+            vec3(__W2_10__),
+            vec3(__W2_11__),
+            vec3(__W2_12__),
+            vec3(__W2_13__),
+            vec3(__W2_14__),
+            vec3(__W2_15__)
+        );
+
+        intermediate_one += input_values[0][0] * weightsArr[0]
+            + input_values[0][1] * weightsArr[1]
+            + input_values[0][2] * weightsArr[2]
+            + input_values[0][3] * weightsArr[3]
+            + input_values[1][0] * weightsArr[4]
+            + input_values[1][1] * weightsArr[5]
+            + input_values[1][2] * weightsArr[6]
+            + input_values[1][3] * weightsArr[7]
+            + input_values[2][0] * weightsArr[8]
+            + input_values[2][1] * weightsArr[9]
+            + input_values[2][2] * weightsArr[10] /*ViewDir*/;
+        intermediate_one[0] = max(intermediate_one[0], 0.0);
+        intermediate_one[1] = max(intermediate_one[1], 0.0);
+        intermediate_one[2] = max(intermediate_one[2], 0.0);
+        intermediate_one[3] = max(intermediate_one[3], 0.0);
+
+        mediump mat4 intermediate_two = mat4(
             BIAS_LIST_ONE
         );
-        for (int j = 0; j < NUM_CHANNELS_ONE; ++j) {
-            if (intermediate_one[j] <= 0.0) {
-                continue;
-            }
-            for (int i = 0; i < NUM_CHANNELS_TWO; ++i) {
-                intermediate_two[i] += intermediate_one[j] *
-                    texelFetch(weightsOne, ivec2(j, i), 0).x;
-            }
-        }
-        mediump float result[NUM_CHANNELS_THREE] = float[](
+        intermediate_two += intermediate_one[0][0] * weightsArr2[0]
+            + intermediate_one[0][1] * weightsArr2[1]
+            + intermediate_one[0][2] * weightsArr2[2]
+            + intermediate_one[0][3] * weightsArr2[3]
+            + intermediate_one[1][0] * weightsArr2[4]
+            + intermediate_one[1][1] * weightsArr2[5]
+            + intermediate_one[1][2] * weightsArr2[6]
+            + intermediate_one[1][3] * weightsArr2[7]
+            + intermediate_one[2][0] * weightsArr2[8]
+            + intermediate_one[2][1] * weightsArr2[9]
+            + intermediate_one[2][2] * weightsArr2[10]
+            + intermediate_one[2][3] * weightsArr2[11]
+            + intermediate_one[3][0] * weightsArr2[12]
+            + intermediate_one[3][1] * weightsArr2[13]
+            + intermediate_one[3][2] * weightsArr2[14]
+            + intermediate_one[3][3] * weightsArr2[15];
+        intermediate_two[0] = max(intermediate_two[0], 0.0);
+        intermediate_two[1] = max(intermediate_two[1], 0.0);
+        intermediate_two[2] = max(intermediate_two[2], 0.0);
+        intermediate_two[3] = max(intermediate_two[3], 0.0);
+
+        mediump vec3 result = vec3(
             BIAS_LIST_TWO
         );
-        for (int j = 0; j < NUM_CHANNELS_TWO; ++j) {
-            if (intermediate_two[j] <= 0.0) {
-                continue;
-            }
-            for (int i = 0; i < NUM_CHANNELS_THREE; ++i) {
-                result[i] += intermediate_two[j] *
-                    texelFetch(weightsTwo, ivec2(j, i), 0).x;
-            }
-        }
-        for (int i = 0; i < NUM_CHANNELS_THREE; ++i) {
-            result[i] = 1.0 / (1.0 + exp(-result[i]));
-        }
-        return vec3(result[0]*viewdir.a+(1.0-viewdir.a),
-                    result[1]*viewdir.a+(1.0-viewdir.a),
-                    result[2]*viewdir.a+(1.0-viewdir.a));
+        result += intermediate_two[0][0] * weightsArr3[0]
+                + intermediate_two[0][1] * weightsArr3[1]
+                + intermediate_two[0][2] * weightsArr3[2]
+                + intermediate_two[0][3] * weightsArr3[3]
+                + intermediate_two[1][0] * weightsArr3[4]
+                + intermediate_two[1][1] * weightsArr3[5]
+                + intermediate_two[1][2] * weightsArr3[6]
+                + intermediate_two[1][3] * weightsArr3[7]
+                + intermediate_two[2][0] * weightsArr3[8]
+                + intermediate_two[2][1] * weightsArr3[9]
+                + intermediate_two[2][2] * weightsArr3[10]
+                + intermediate_two[2][3] * weightsArr3[11]
+                + intermediate_two[3][0] * weightsArr3[12]
+                + intermediate_two[3][1] * weightsArr3[13]
+                + intermediate_two[3][2] * weightsArr3[14]
+                + intermediate_two[3][3] * weightsArr3[15];
+        result = 1.0 / (1.0 + exp(-result));
+        return result;
       }
 
 
     void main() {
 
         vec4 diffuse0 = texture( tDiffuse0x, vUv );
-        if (diffuse0.a < 0.6) discard;
+        //if (diffuse0.a < 0.6) discard;
         vec4 diffuse1 = texture( tDiffuse1x, vUv );
         vec4 diffuse2 = texture( tDiffuse2x, vUv );
 
@@ -264,6 +323,19 @@ function createViewDependenceFunctions(network_weights) {
       new RegExp('NUM_CHANNELS_TWO', 'g'), channelsTwo);
   fragmentShaderSource = fragmentShaderSource.replace(
       new RegExp('NUM_CHANNELS_THREE', 'g'), channelsThree);
+
+  for(let i = 0; i < network_weights['0_weights'].length; i++) {
+    fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp(`__W0_${i}__`, 'g'), network_weights['0_weights'][i].join(', '));
+  }
+  for(let i = 0; i < network_weights['1_weights'].length; i++) {
+    fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp(`__W1_${i}__`, 'g'), network_weights['1_weights'][i].join(', '));
+  }
+  for(let i = 0; i < network_weights['2_weights'].length; i++) {
+    fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp(`__W2_${i}__`, 'g'), network_weights['2_weights'][i].join(', '));
+  }
 
   fragmentShaderSource = fragmentShaderSource.replace(
       new RegExp('BIAS_LIST_ZERO', 'g'), biasListZero);
@@ -403,9 +475,6 @@ function createViewDependenceFunctions(network_weights) {
 
     let network_weights = json;
     let fragmentShaderSource = createViewDependenceFunctions(network_weights);
-    let weightsTexZero = createNetworkWeightTexture(network_weights['0_weights']);
-    let weightsTexOne = createNetworkWeightTexture(network_weights['1_weights']);
-    let weightsTexTwo = createNetworkWeightTexture(network_weights['2_weights']);
 
     // PostProcessing setup
     postScene = new THREE.Scene();
@@ -421,9 +490,6 @@ function createViewDependenceFunctions(network_weights) {
                 tDiffuse0x: { value: renderTarget.texture[ 0 ] },
                 tDiffuse1x: { value: renderTarget.texture[ 1 ] },
                 tDiffuse2x: { value: renderTarget.texture[ 2 ] },
-                weightsZero: { value: weightsTexZero },
-                weightsOne: { value: weightsTexOne },
-                weightsTwo: { value: weightsTexTwo },
             },
             glslVersion: THREE.GLSL3
         } )
