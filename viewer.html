@@ -1,40 +1,10 @@
-<style>
-    html, body {
-        background: #333333;
-        color: rgba(255, 255, 255, 0.8);
-    }
+<div id="container" style="position:fixed; top:0%; left:0%;"></div>
 
-    #wrapper {
-        max-width: 960px;
-        margin: auto;
-        text-align: center;
-    }
-
-    #container {
-        margin: auto;
-        display: inline-block;
-    }
-
-    #info {
-        text-align: center;
-    }
-
-    #VRButton {
-        position: relative !important;
-        left: inherit !important;
-        bottom: 96px !important;
-        background-color: #333333 !important;
-    }
-</style>
-
-<div id="wrapper">
-    <div id="container"></div>
-
-    <div id="info" style="font-size: 50px;">
-        <div id="fpsdisplay"></div>
-        <div id="sizedisplay"></div>
-    </div>
+<div id="info" style="position:absolute; top:800px; font-size: 50px;">
+    <div id="fpsdisplay"></div>
+    <div id="sizedisplay"></div>
 </div>
+
 
 <!-- Write to G-Buffer -->
 <script id="gbuffer-vert" type="x-shader/x-vertex">
@@ -89,11 +59,15 @@
 
     out vec2 vUv;
 
+    uniform mat4 modelViewMatrix;
+    uniform mat4 projectionMatrix;
+
     void main() {
         vUv = uv;
-        gl_Position = vec4( position, 1.0 );
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
     }
 </script>
+
 
 <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
 <script type="importmap">
@@ -153,7 +127,7 @@ const viewDependenceNetworkShaderFunctions = `
             } else {
             input_value =
                 (j == 8) ? viewdir.r : (
-                __J9__
+                (j == 9) ? -viewdir.b : viewdir.g); //switch y-z axes
             }
             for (int i = 0; i < NUM_CHANNELS_ONE; ++i) {
             intermediate_one[i] += input_value *
@@ -200,11 +174,12 @@ const viewDependenceNetworkShaderFunctions = `
         vec4 diffuse1 = texture( tDiffuse1x, vUv );
         vec4 diffuse2 = texture( tDiffuse2x, vUv );
 
-        // deal with iphone
+        //deal with iphone
         diffuse0.a = diffuse0.a*2.0-1.0;
         diffuse1.a = diffuse1.a*2.0-1.0;
         diffuse2.a = diffuse2.a*2.0-1.0;
 
+        //pc_FragColor.rgb  = diffuse1.rgb;
         pc_FragColor.rgb = evaluateNetwork(diffuse1,diffuse2,diffuse0);
         pc_FragColor.a = 1.0;
     }
@@ -245,7 +220,7 @@ function createNetworkWeightTexture(network_weights) {
  * @param {!Object} scene_params
  * @return {string}
  */
-function createViewDependenceFunctions(network_weights, j9) {
+function createViewDependenceFunctions(network_weights) {
   let width = network_weights['0_bias'].length;
   let biasListZero = '';
   for (let i = 0; i < width; i++) {
@@ -275,6 +250,7 @@ function createViewDependenceFunctions(network_weights, j9) {
       biasListTwo += ', ';
     }
   }
+
   let channelsZero = network_weights['0_weights'].length;
   let channelsOne = network_weights['0_bias'].length;
   let channelsTwo = network_weights['1_bias'].length;
@@ -296,9 +272,6 @@ function createViewDependenceFunctions(network_weights, j9) {
     fragmentShaderSource = fragmentShaderSource.replace(
       new RegExp('BIAS_LIST_TWO', 'g'), biasListTwo);
 
-  fragmentShaderSource = fragmentShaderSource.replace(
-      new RegExp('__J9__', 'g'), j9);
-
   return fragmentShaderSource;
 }
 
@@ -306,7 +279,7 @@ function createViewDependenceFunctions(network_weights, j9) {
   let container;
 
   let camera, scene, renderer, controls;
-  let renderTargets = [];
+  let renderTarget;
   let postScene, postCamera;
 
   let gLastFrame = window.performance.now();
@@ -316,18 +289,9 @@ function createViewDependenceFunctions(network_weights, j9) {
   let gTotalOBJs = 0;
   let gTotalPNGs = 0;
 
-  let preset_size_w = 512;//980;
-  let preset_size_h = 512;//660;
-  let object_rescale = 1.0;
-
-  let object_offset_x = 0.0;
-  let object_offset_y = 0.6;
-  let object_offset_z = -0.5;
-  let cam_target = new THREE.Vector3(0, 0, -1);
-  let cam_pos = new THREE.Vector3(0, 1.6, 0);
-  let near_plane = 0.2;
-
-  let j9 = '(j == 9) ? -viewdir.b : viewdir.g); //switch y-z axes';
+  const preset_size_w = 800;
+  const preset_size_h = 800;
+  const object_rescale = 0.1;
 
   const baseUrl = 'https://storage.googleapis.com/jax3d-public/projects/mobilenerf/mobilenerf_viewer_mac/';
 
@@ -337,61 +301,10 @@ function createViewDependenceFunctions(network_weights, j9) {
 
     const params = new URL(window.location.href).searchParams;
     const objname = params.get('obj');
-    preset_size_w = +params.get('w') || 256;
-    preset_size_h = +params.get('h') || 256;
 
-    let obj_name = 'stump';
+    let obj_name = 'ficus';
     if (objname) {
       obj_name = objname;
-    }
-
-    //center the object
-    if (obj_name === "chair") {
-        object_rescale = 0.6;
-        object_offset_y = 0.6;
-        object_offset_z = -0.5;
-        cam_target.set(0, 0.6, -0.5);
-        cam_pos.set(0, 1.6, 1.5);
-    } else if (obj_name === 'drums') {
-        object_offset_y = 0.6;
-        object_offset_z = -0.5;
-        cam_target.set(0, 0.9, -0.5);
-        cam_pos.set(0, 1.6, 1.5);
-    } else if (obj_name === 'hotdog') {
-        object_rescale = 0.2;
-    } else if (obj_name === 'lego') {
-        object_rescale = 0.2;
-    } else if (obj_name === 'mic') {
-        object_rescale = 0.2;
-    } else if (obj_name === 'ship') {
-        object_rescale = 0.4;
-    } else if (["fern", "flower", "fortress", "horns", "leaves", "orchids", "room", "trex"].indexOf(obj_name) !== -1) {
-        // Front-facing
-        j9 = '(j == 9) ? viewdir.g : viewdir.b);';
-        object_rescale = 1.6;
-        object_offset_y = 1.6;
-        if(obj_name === "flower" || obj_name === "leaves" || obj_name === "orchids") {
-            object_rescale = 0.5;
-            object_offset_y = 1.6;
-        }
-        object_offset_z = 0.0;
-        cam_target.set(0, 1.6, -1);
-        cam_pos.set(0, 1.6, 1);
-    } else if (obj_name === 'bicycle') {
-        object_rescale = 4.0;
-        object_offset_y = 1.5;
-        object_offset_z = -1.0;
-        near_plane = 0.1;
-    } else if (obj_name === 'gardenvase') {
-        object_rescale = 3.0;
-        object_offset_y = 2.25;
-        object_offset_z = -2.0;
-        near_plane = 0.1;
-    } else if (obj_name === 'stump') {
-        object_rescale = 3.0;
-        object_offset_y = 1.5;
-        object_offset_z = -1.0;
-        near_plane = 0.1;
     }
 
     if ( WebGL.isWebGL2Available() === false ) {
@@ -405,35 +318,29 @@ function createViewDependenceFunctions(network_weights, j9) {
         precision: 'highp',
     });
     renderer.setPixelRatio( 1 );
-    renderer.setSize( 512, 512 );
+    renderer.setSize( preset_size_w, preset_size_h );
     renderer.setClearColor( new THREE.Color("rgb(0, 0, 0)"), 0.5 );
-    renderer.xr.enabled = true;
     container.appendChild( renderer.domElement );
-    container.appendChild( VRButton.createButton( renderer ) );
+
 
     // Create a multi render target with Float buffers
-    for(let eye = 0; eye < 2; eye++) {
-        renderTargets[eye] = new THREE.WebGLMultipleRenderTargets(
-            preset_size_w * 2,
-            preset_size_h * 2,
-            3
-        );
+    renderTarget = new THREE.WebGLMultipleRenderTargets(
+        preset_size_w * 2,
+        preset_size_h * 2,
+        3
+    );
 
-        for ( let i = 0, il = renderTargets[eye].texture.length; i < il; i ++ ) {
-            renderTargets[eye].texture[ i ].minFilter = THREE.LinearFilter;
-            renderTargets[eye].texture[ i ].magFilter = THREE.LinearFilter;
-            renderTargets[eye].texture[ i ].type = THREE.FloatType;
-        }
+    for ( let i = 0, il = renderTarget.texture.length; i < il; i ++ ) {
+        renderTarget.texture[ i ].minFilter = THREE.LinearFilter;
+        renderTarget.texture[ i ].magFilter = THREE.LinearFilter;
+        renderTarget.texture[ i ].type = THREE.FloatType;
     }
 
-    camera = new THREE.PerspectiveCamera( 47, 1.0, near_plane*object_rescale, 25*object_rescale );
-    camera.layers.disableAll();
-    camera.layers.enable(0); // Scene
-    camera.layers.enable(1); // Left/monoscopic view
-    camera.position.copy(cam_pos);
+    camera = new THREE.PerspectiveCamera( 39, preset_size_w/preset_size_h, 2*object_rescale, 6*object_rescale );
+    camera.position.y = 2.0*object_rescale;
+    camera.position.z = 3.464*object_rescale;
 
     controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.copy(cam_target);
     controls.enableDamping = true;
     controls.screenSpacePanning = true;
 
@@ -489,16 +396,13 @@ function createViewDependenceFunctions(network_weights, j9) {
 					object.scale.x = object_rescale;
 					object.scale.y = object_rescale;
 					object.scale.z = object_rescale;
-					object.position.x = object_offset_x;//*object_rescale;
-					object.position.y = object_offset_y;//*object_rescale;
-					object.position.z = object_offset_z;//*object_rescale;
 					scene.add(object);
 			});
 		}
     }
 
     let network_weights = json;
-    let fragmentShaderSource = createViewDependenceFunctions(network_weights, j9);
+    let fragmentShaderSource = createViewDependenceFunctions(network_weights);
     let weightsTexZero = createNetworkWeightTexture(network_weights['0_weights']);
     let weightsTexOne = createNetworkWeightTexture(network_weights['1_weights']);
     let weightsTexTwo = createNetworkWeightTexture(network_weights['2_weights']);
@@ -506,28 +410,24 @@ function createViewDependenceFunctions(network_weights, j9) {
     // PostProcessing setup
     postScene = new THREE.Scene();
     postScene.background = new THREE.Color("rgb(255, 255, 255)");
-
-    for(let eye = 0; eye < 2; eye++) {
-        const fullscreenQuad = new THREE.Mesh(
-            new THREE.PlaneGeometry( 2, 2 ),
-            new THREE.RawShaderMaterial( {
-                vertexShader: document.querySelector( '#render-vert' ).textContent.trim(),
-                fragmentShader: fragmentShaderSource,
-                uniforms: {
-                    tDiffuse0x: { value: renderTargets[eye].texture[ 0 ] },
-                    tDiffuse1x: { value: renderTargets[eye].texture[ 1 ] },
-                    tDiffuse2x: { value: renderTargets[eye].texture[ 2 ] },
-                    weightsZero: { value: weightsTexZero },
-                    weightsOne: { value: weightsTexOne },
-                    weightsTwo: { value: weightsTexTwo },
-                },
-                glslVersion: THREE.GLSL3
-            } )
-        );
-        fullscreenQuad.layers.set(eye + 1);
-        fullscreenQuad.frustumCulled = false;
-        postScene.add( fullscreenQuad );
-    }
+    //postScene.background = new THREE.Color("rgb(128, 128, 128)");
+    postCamera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+    postScene.add( new THREE.Mesh(
+        new THREE.PlaneGeometry( 2, 2 ),
+        new THREE.RawShaderMaterial( {
+            vertexShader: document.querySelector( '#render-vert' ).textContent.trim(),
+            fragmentShader: fragmentShaderSource,
+            uniforms: {
+                tDiffuse0x: { value: renderTarget.texture[ 0 ] },
+                tDiffuse1x: { value: renderTarget.texture[ 1 ] },
+                tDiffuse2x: { value: renderTarget.texture[ 2 ] },
+                weightsZero: { value: weightsTexZero },
+                weightsOne: { value: weightsTexOne },
+                weightsTwo: { value: weightsTexTwo },
+            },
+            glslVersion: THREE.GLSL3
+        } )
+    ) );
 
     window.addEventListener( 'resize', onWindowResize, false );
 	onWindowResize();
@@ -541,10 +441,9 @@ function createViewDependenceFunctions(network_weights, j9) {
     camera.aspect = preset_size_w/preset_size_h;
     camera.updateProjectionMatrix();
 
-    renderer.setSize( 512, 512 );
+    renderer.setSize( preset_size_w, preset_size_h );
 
-    renderTargets[0].setSize( preset_size_w * 2, preset_size_h * 2 );
-    renderTargets[1].setSize( preset_size_w * 2, preset_size_h * 2 );
+    renderTarget.setSize( preset_size_w * 2, preset_size_h * 2 );
     document.getElementById('sizedisplay').innerHTML = "Size: "+(preset_size_w).toFixed(0)+"x"+(preset_size_h).toFixed(0);
 
     render();
@@ -567,46 +466,23 @@ function updateFPSCounter() {
 
   function animate() {
 
-    renderer.setAnimationLoop(render);
+    requestAnimationFrame( animate );
+
+    controls.update();
+
+    render();
 
   }
 
   function render() {
-    controls.update();
+    // render scene into target
+    renderer.setRenderTarget( renderTarget );
+    renderer.render( scene, camera );
 
-    if(renderer.xr.isPresenting) {
-        // Update XR camera
-        renderer.xr.updateCamera(camera);
-        const xrCamera = renderer.xr.getCamera();
-        const oldRenderTarget = renderer.getRenderTarget();
-
-        renderer.xr.enabled = false;
-        // Left eye
-        xrCamera.cameras[0].parent = true;
-        renderer.setRenderTarget(renderTargets[0]);
-        renderer.render( scene, xrCamera.cameras[0] );
-        xrCamera.cameras[0].parent = null;
-        // Right eye
-        xrCamera.cameras[1].parent = true;
-        renderer.setRenderTarget(renderTargets[1]);
-        renderer.render( scene, xrCamera.cameras[1] );
-        xrCamera.cameras[1].parent = null;
-
-        renderer.xr.enabled = true;
-
-        renderer.setRenderTarget(oldRenderTarget);
-        renderer.render( postScene, camera );
-    } else {
-        // render scene into target
-        renderer.setRenderTarget( renderTargets[0] );
-        renderer.render( scene, camera );
-
-        // render post FX
-        renderer.setRenderTarget( null );
-        renderer.render( postScene, camera );
-    }
+    // render post FX
+    renderer.setRenderTarget( null );
+    renderer.render( postScene, postCamera );
 
     updateFPSCounter();
   }
-
 </script>
