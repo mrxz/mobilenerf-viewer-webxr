@@ -13,40 +13,33 @@
 
     out vec2 vUv;
     out vec3 vPosition;
-    out vec3 rayDirection;
 
     uniform mat4 modelViewMatrix;
     uniform mat4 projectionMatrix;
-    uniform mat4 modelMatrix;
-    uniform vec3 cameraPosition;
 
     void main() {
         vUv = uv;
         vPosition = position;
         gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        rayDirection = (modelMatrix * vec4( position, 1.0 )).rgb - cameraPosition;
     }
 </script>
 <script id="gbuffer-frag" type="x-shader/x-fragment">
     precision highp float;
 
-    layout(location = 0) out vec4 gColor0;
-    layout(location = 1) out vec4 gColor1;
-    layout(location = 2) out vec4 gColor2;
+    layout(location = 0) out vec4 gColor1;
+    layout(location = 1) out vec4 gColor2;
 
     uniform mediump sampler2D tDiffuse0;
     uniform mediump sampler2D tDiffuse1;
 
     in vec2 vUv;
     in vec3 vPosition;
-    in vec3 rayDirection;
 
     void main() {
 
         // write color to G-Buffer
         gColor1 = texture( tDiffuse0, vUv );
         if (gColor1.r == 0.0) discard;
-        gColor0 = vec4( normalize(rayDirection), 1.0 );
         gColor2 = texture( tDiffuse1, vUv );
 
     }
@@ -100,9 +93,11 @@ const viewDependenceNetworkShaderFunctions = `
 
     in vec2 vUv;
 
-    uniform mediump sampler2D tDiffuse0x;
     uniform mediump sampler2D tDiffuse1x;
     uniform mediump sampler2D tDiffuse2x;
+
+    uniform mat4 cameraWorldMatrix;
+    uniform mat4 invProjectionMatrix;
 
     mediump vec3 evaluateNetwork( mediump vec4 f0, mediump vec4 f1, mediump vec4 viewdir) {
         mediump mat4 intermediate_one = mat4(
@@ -228,18 +223,20 @@ const viewDependenceNetworkShaderFunctions = `
 
     void main() {
 
-        vec4 diffuse0 = texture( tDiffuse0x, vUv );
-        //if (diffuse0.a < 0.6) discard;
         vec4 diffuse1 = texture( tDiffuse1x, vUv );
+        if (diffuse1.r == 0.0) discard;
         vec4 diffuse2 = texture( tDiffuse2x, vUv );
 
         //deal with iphone
-        diffuse0.a = diffuse0.a*2.0-1.0;
         diffuse1.a = diffuse1.a*2.0-1.0;
         diffuse2.a = diffuse2.a*2.0-1.0;
 
-        //pc_FragColor.rgb  = diffuse1.rgb;
-        pc_FragColor.rgb = evaluateNetwork(diffuse1,diffuse2,diffuse0);
+        vec2 ndc = 2.0 * vUv - vec2( 1.0 );
+        vec3 viewSpace = (invProjectionMatrix * vec4( ndc, 0.0, 1.0 )).xyz;
+        vec3 worldSpace = mat3(cameraWorldMatrix) * viewSpace;
+        vec3 viewDir = normalize(worldSpace);
+
+        pc_FragColor.rgb = evaluateNetwork(diffuse1,diffuse2,vec4(viewDir, 0.0));
         pc_FragColor.a = 1.0;
     }
 `;
@@ -353,6 +350,8 @@ function createViewDependenceFunctions(network_weights) {
   let camera, scene, renderer, controls;
   let renderTarget;
   let postScene, postCamera;
+  let invProjectionMatrixUniform = { value: new THREE.Matrix4() };
+  let cameraWorldMatrixUniform = { value: new THREE.Matrix4() };
 
   let gLastFrame = window.performance.now();
   let oldMilliseconds = 1000;
@@ -389,7 +388,7 @@ function createViewDependenceFunctions(network_weights) {
         powerPreference: 'high-performance',
         precision: 'highp',
     });
-    renderer.setPixelRatio( 1 );
+    renderer.setPixelRatio( 2 );
     renderer.setSize( preset_size_w, preset_size_h );
     renderer.setClearColor( new THREE.Color("rgb(0, 0, 0)"), 0.5 );
     container.appendChild( renderer.domElement );
@@ -399,12 +398,12 @@ function createViewDependenceFunctions(network_weights) {
     renderTarget = new THREE.WebGLMultipleRenderTargets(
         preset_size_w * 2,
         preset_size_h * 2,
-        3
+        2
     );
 
     for ( let i = 0, il = renderTarget.texture.length; i < il; i ++ ) {
-        renderTarget.texture[ i ].minFilter = THREE.LinearFilter;
-        renderTarget.texture[ i ].magFilter = THREE.LinearFilter;
+        renderTarget.texture[ i ].minFilter = THREE.NearestFilter;
+        renderTarget.texture[ i ].magFilter = THREE.NearestFilter;
         renderTarget.texture[ i ].type = THREE.FloatType;
     }
 
@@ -487,9 +486,10 @@ function createViewDependenceFunctions(network_weights) {
             vertexShader: document.querySelector( '#render-vert' ).textContent.trim(),
             fragmentShader: fragmentShaderSource,
             uniforms: {
-                tDiffuse0x: { value: renderTarget.texture[ 0 ] },
-                tDiffuse1x: { value: renderTarget.texture[ 1 ] },
-                tDiffuse2x: { value: renderTarget.texture[ 2 ] },
+                tDiffuse1x: { value: renderTarget.texture[ 0 ] },
+                tDiffuse2x: { value: renderTarget.texture[ 1 ] },
+                invProjectionMatrix: invProjectionMatrixUniform,
+                cameraWorldMatrix: cameraWorldMatrixUniform,
             },
             glslVersion: THREE.GLSL3
         } )
@@ -546,6 +546,10 @@ function updateFPSCounter() {
     renderer.render( scene, camera );
 
     // render post FX
+    cameraWorldMatrixUniform.value.copy(camera.matrixWorld);
+    cameraWorldMatrixUniform.needsUpdate = true;
+    invProjectionMatrixUniform.value.copy(camera.projectionMatrixInverse);
+    invProjectionMatrixUniform.needsUpdate = true;
     renderer.setRenderTarget( null );
     renderer.render( postScene, postCamera );
 
